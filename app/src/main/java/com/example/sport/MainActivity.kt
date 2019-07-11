@@ -1,9 +1,13 @@
 package com.example.sport
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PointF
+import android.location.Criteria
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
@@ -11,12 +15,15 @@ import android.support.v4.app.ActivityCompat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.*
+import java.io.IOException
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.ChangeSetting {
@@ -36,23 +43,36 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         p0?.isMyLocationEnabled = true
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        val best = locationManager.getBestProvider(Criteria(), true)
+        Log.d("BestProvider", best)
         p0?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
         cameraFollowUser(5000, location.latitude, location.longitude, p0)
+        //service
+        val service = Intent(this@MainActivity, ForeGroundService::class.java)
+//        service.putExtra("lat", location.latitude.toString())
+//        service.putExtra("long", location.longitude.toString())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(service)
+        } else {
+            startService(service)
+        }
+        //service
     }
 
     fun cameraFollowUser(timeout: Long, lat: Double, long: Double, map: GoogleMap?) {
-            val task = object : TimerTask() {
-                override fun run() {
-                    if (FLAG_CAMERAFOLLOW) {
-                        runOnUiThread() {
-                            map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, long), 18F))
-                            Log.d("cameraFollowing", "$FLAG_CAMERAFOLLOW")
-                        }
+        val task = object : TimerTask() {
+            override fun run() {
+                if (FLAG_CAMERAFOLLOW) {
+                    runOnUiThread() {
+                        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, long), 18F))
+                        Log.d("cameraFollowing", LatLng(lat, long).toString())
                     }
                 }
             }
-            val timer = Timer()
-            timer.schedule(task, 0, timeout)
+        }
+
+        val timer = Timer()
+        timer.schedule(task, 0, timeout)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,6 +130,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         FLAG_CAMERAFOLLOW = follow
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("destroy", " onDestroy")
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
@@ -127,7 +152,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         }
     }
 
-    private fun checkGPSPermission(permission1: String, permission2: String): Boolean {
+    fun checkGPSPermission(permission1: String, permission2: String): Boolean {
         return (ActivityCompat.checkSelfPermission(
             this,
             permission1
