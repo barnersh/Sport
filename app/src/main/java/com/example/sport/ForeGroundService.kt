@@ -60,7 +60,7 @@ class ForeGroundService : Service() {
                 val serviceLocation = serviceLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
                 //request test
                 val param = FormBody.Builder()
-                Log.d("LatLng", serviceLocation.latitude.toString() + "//////" + serviceLocation.longitude.toString())
+                Log.d("Service", serviceLocation.latitude.toString() + "//////" + serviceLocation.longitude.toString())
                 try {
                     param.add("lat", serviceLocation.latitude.toString())
                     param.add("long", serviceLocation.longitude.toString())

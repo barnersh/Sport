@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.location.Criteria
+import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -33,6 +35,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         var lastClickTime = 0L
     }
 
+    lateinit var locationManager: LocationManager
+    lateinit var locationListener: LocationListenerImp
+
+    inner class LocationListenerImp(val map: GoogleMap?) : LocationListener {
+        override fun onLocationChanged(location: Location) {
+            Log.d("LocationLisenter", location.latitude.toString() + "////////" + location.longitude.toString())
+            Log.d("Flag", FLAG_CAMERAFOLLOW.toString())
+            if (FLAG_CAMERAFOLLOW) {
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
+            }
+        }
+
+        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+        }
+
+        override fun onProviderEnabled(provider: String?) {
+        }
+
+        override fun onProviderDisabled(provider: String?) {
+        }
+
+    }
+
     override fun onMapReady(p0: GoogleMap?) {
         if (!checkGPSPermission(
                 android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -40,39 +65,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             )
         ) finish()
 
-        p0?.isMyLocationEnabled = true
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        val best = locationManager.getBestProvider(Criteria(), true)
-        Log.d("BestProvider", best)
-        p0?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
-        cameraFollowUser(5000, location.latitude, location.longitude, p0)
-        //service
+        locationInit(p0)
+        serviceInit()
+    }
+
+    fun serviceInit() {
         val service = Intent(this@MainActivity, ForeGroundService::class.java)
-//        service.putExtra("lat", location.latitude.toString())
-//        service.putExtra("long", location.longitude.toString())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(service)
         } else {
             startService(service)
         }
-        //service
     }
 
-    fun cameraFollowUser(timeout: Long, lat: Double, long: Double, map: GoogleMap?) {
-        val task = object : TimerTask() {
-            override fun run() {
-                if (FLAG_CAMERAFOLLOW) {
-                    runOnUiThread() {
-                        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, long), 18F))
-                        Log.d("cameraFollowing", LatLng(lat, long).toString())
-                    }
-                }
-            }
-        }
-
-        val timer = Timer()
-        timer.schedule(task, 0, timeout)
+    fun locationInit(map: GoogleMap?) {
+        if (!checkGPSPermission(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        ) finish()
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        val best = locationManager.getBestProvider(Criteria(), true)
+        Log.d("BestProvider", best)
+        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
+        map?.isMyLocationEnabled = true
+        locationListener = LocationListenerImp(map)
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0F, locationListener)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,6 +152,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
     override fun onDestroy() {
         super.onDestroy()
         Log.d("destroy", " onDestroy")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (locationManager != null) {
+            locationManager.removeUpdates(locationListener)
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
