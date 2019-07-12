@@ -67,6 +67,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
         locationInit(p0)
         serviceInit()
+        btn_turn.setOnClickListener {
+
+        }
     }
 
     fun serviceInit() {
@@ -92,6 +95,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         map?.isMyLocationEnabled = true
         locationListener = LocationListenerImp(map)
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0F, locationListener)
+    }
+
+    fun localeToAddress() {
+        
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
