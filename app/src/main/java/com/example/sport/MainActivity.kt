@@ -1,19 +1,18 @@
 package com.example.sport
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
-import android.location.Criteria
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import android.net.Uri
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
 import android.support.v4.app.ActivityCompat
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         locationInit(p0)
         serviceInit()
         btn_turn.setOnClickListener {
-
+            localeToAddress()
         }
     }
 
@@ -98,7 +97,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
     }
 
     fun localeToAddress() {
-        
+        if (!checkGPSPermission(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        ) finish()
+        val geocoder = Geocoder(this, Locale.getDefault())
+        val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+
+        AlertDialog.Builder(this)
+            .setPositiveButton("Confirm") {dialog, which ->  }
+            .setTitle(address.get(0).getAddressLine(0))
+            .show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,9 +174,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
     override fun onPause() {
         super.onPause()
-        if (locationManager != null) {
-            locationManager.removeUpdates(locationListener)
-        }
+//        if (locationManager != null) {
+//            locationManager.removeUpdates(locationListener)
+//        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
