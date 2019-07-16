@@ -21,7 +21,20 @@
             android:id="@+id/map" app:layout_constraintTop_toBottomOf="@+id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toTopOf="@+id/bottomNavigation">
+        <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            <Button
+                    android:text=" Turn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:id="@+id/btn_turn"
+                    app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="31dp"
+                    android:layout_marginRight="8dp" android:layout_marginBottom="8dp"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+        </android.support.constraint.ConstraintLayout>
+    </fragment>
+
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -31,12 +44,18 @@
 
     </FrameLayout>
     <Button
-            android:text="Turn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/btn_turn"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="31dp"
-            android:layout_marginRight="8dp" android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:text="開跑!"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:id="@+id/btn_start"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/bottomNavigation" android:layout_marginBottom="16dp"
+            android:layout_marginLeft="8dp" android:layout_marginStart="8dp" android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp" android:textSize="18sp" android:background="#80C3CBCC"/>
+    <android.support.design.widget.BottomNavigationView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            android:id="@+id/bottomNavigation" app:menu="@menu/bottom"/>
 
 
 </android.support.constraint.ConstraintLayout>

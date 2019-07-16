@@ -1,4 +1,4 @@
-package com.example.sport
+package com.example.sport.fragment
 
 import android.content.Context
 import android.net.Uri
@@ -8,32 +8,34 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_setting.*
 
+import com.example.sport.R
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val FOLLOW = "param1"
+private const val ARG_PARAM1 = "param1"
+private const val ARG_PARAM2 = "param2"
 
 /**
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
- * [SettingFragment.ChangeSetting] interface
+ * [MapFragment.OnFragmentInteractionListener] interface
  * to handle interaction events.
- * Use the [SettingFragment.newInstance] factory method to
+ * Use the [MapFragment.newInstance] factory method to
  * create an instance of this fragment.
  *
  */
-class SettingFragment : Fragment() {
+class MapFragment : Fragment() {
     // TODO: Rename and change types of parameters
-    private var follow: Boolean = false
-    private var listener: ChangeSetting? = null
+    private var param1: String? = null
+    private var param2: String? = null
+    private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            follow = it.getBoolean(FOLLOW)
+            param1 = it.getString(ARG_PARAM1)
+            param2 = it.getString(ARG_PARAM2)
         }
     }
 
@@ -42,45 +44,28 @@ class SettingFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_setting, container, false)
-    }
+        val rootview =  inflater.inflate(R.layout.fragment_map, container, false)
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        sw_follow.isChecked = follow
-
-        sw_follow.setOnClickListener {
-            follow = sw_follow.isChecked
-            onButtonPressed(follow)
-        }
-
-        btn_Confirm.setOnClickListener {
-            val fragmentTransaction = fragmentManager?.beginTransaction()
-            fragmentTransaction?.hide(this)
-            fragmentTransaction?.show(map)
-            fragmentTransaction?.commit()
-        }
+        return rootview
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(follow: Boolean) {
-        listener?.changeSetting(follow)
+    fun onButtonPressed(uri: Uri) {
+        listener?.onFragmentInteraction(uri)
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is ChangeSetting) {
+        if (context is OnFragmentInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement ChangeSetting")
+            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
         }
     }
 
     override fun onDetach() {
         super.onDetach()
         listener = null
-        Log.d("detach", "SettingFragmentDetach")
     }
 
     /**
@@ -94,9 +79,9 @@ class SettingFragment : Fragment() {
      * (http://developer.android.com/training/basics/fragments/communicating.html)
      * for more information.
      */
-    interface ChangeSetting {
+    interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        fun changeSetting(follow: Boolean)
+        fun onFragmentInteraction(uri: Uri)
     }
 
     companion object {
@@ -104,16 +89,17 @@ class SettingFragment : Fragment() {
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
          *
-         * @param follow Parameter 1.
+         * @param param1 Parameter 1.
          * @param param2 Parameter 2.
-         * @return A new instance of fragment SettingFragment.
+         * @return A new instance of fragment MapFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(follow: Boolean) =
-            SettingFragment().apply {
+        fun newInstance(param1: String, param2: String) =
+            MapFragment().apply {
                 arguments = Bundle().apply {
-                    putBoolean(FOLLOW, follow)
+                    putString(ARG_PARAM1, param1)
+                    putString(ARG_PARAM2, param2)
                 }
             }
     }

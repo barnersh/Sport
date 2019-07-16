@@ -25,6 +25,8 @@ class ForeGroundService : Service() {
         val CHANNEL_ID = "hey"
     }
 
+    lateinit var timer: Timer
+
     override fun onBind(intent: Intent?): IBinder? {
 //        throw UnsupportedOperationException()
         return null
@@ -41,6 +43,7 @@ class ForeGroundService : Service() {
             val channel = NotificationChannel(CHANNEL_ID, "test", NotificationManager.IMPORTANCE_DEFAULT)
             val builder = Notification.Builder(this, CHANNEL_ID)
             val notification = builder.build()
+            Log.d("startForeground", "startForeground")
             startForeground(1, notification)
         } else {
             val builder = NotificationCompat.Builder(this)
@@ -86,12 +89,13 @@ class ForeGroundService : Service() {
                 //request test
             }
         }
-        val timer = Timer()
+        timer = Timer()
         timer.schedule(timerTask, 0L, 5000)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d("onDestroy", "Service Destroy")
+        timer.cancel()
     }
 }
