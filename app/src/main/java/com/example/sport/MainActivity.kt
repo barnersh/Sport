@@ -12,13 +12,16 @@ import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
+import android.support.constraint.ConstraintSet
 import android.support.design.widget.BottomSheetBehavior
+import android.support.design.widget.CoordinatorLayout
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.FragmentTransaction
 import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -121,7 +124,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
         when (it.itemId) {
             R.id.run -> {
-                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
                 Log.d("bottom", "show")
             }
         }
@@ -131,6 +134,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
     fun sharedPreferenceInit(flagSP: SharedPreferences) {
         FLAG_CAMERAFOLLOW = flagSP.getBoolean("flag", false)
         settingFragment = SettingFragment.newInstance(FLAG_CAMERAFOLLOW)
+    }
+
+    fun bottomSheetInit() {
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
+        bottomSheetBehavior.peekHeight = 500
+        bottomSheetBehavior.isHideable = true
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -157,6 +167,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         flagSP = getSharedPreferences("flag", Context.MODE_PRIVATE)
         setSupportActionBar(toolbar)
         sharedPreferenceInit(flagSP)
+        bottomSheetInit()
         bottomNavigationView.setOnNavigationItemSelectedListener {
             bottomNavigationViewSelected(it)
         }
