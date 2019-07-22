@@ -1,6 +1,7 @@
 package com.example.sport
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -57,7 +58,7 @@ class SettingFragment : Fragment() {
 
         btn_Confirm.setOnClickListener {
             val fragmentTransaction = fragmentManager?.beginTransaction()
-            fragmentTransaction?.remove(this)
+            fragmentTransaction?.hide(this)
             fragmentTransaction?.show(map)
             fragmentTransaction?.commit()
         }

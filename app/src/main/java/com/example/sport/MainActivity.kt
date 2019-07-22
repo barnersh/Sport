@@ -3,6 +3,7 @@ package com.example.sport
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.location.*
@@ -11,7 +12,9 @@ import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
+import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.ActivityCompat
+import android.support.v4.app.FragmentTransaction
 import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.Menu
@@ -36,6 +39,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
     lateinit var locationManager: LocationManager
     lateinit var locationListener: LocationListenerImp
+    lateinit var settingFragment: SettingFragment
+    lateinit var flagSP: SharedPreferences
 
     inner class LocationListenerImp(val map: GoogleMap?) : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -65,8 +70,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         ) finish()
 
         locationInit(p0)
-        serviceInit()
         btn_turn.setOnClickListener {
+            serviceInit()
             localeToAddress()
         }
     }
@@ -93,7 +98,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
         map?.isMyLocationEnabled = true
         locationListener = LocationListenerImp(map)
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0F, locationListener)
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 20F, locationListener)
     }
 
     fun localeToAddress() {
@@ -107,9 +112,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)
 
         AlertDialog.Builder(this)
-            .setPositiveButton("Confirm") {dialog, which ->  }
+            .setPositiveButton("Confirm") { dialog, which -> }
             .setTitle(address.get(0).getAddressLine(0))
             .show()
+    }
+
+    fun bottomNavigationViewSelected(it: MenuItem): Boolean {
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
+        when (it.itemId) {
+            R.id.run -> {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                Log.d("bottom", "show")
+            }
+        }
+        return true
+    }
+
+    fun sharedPreferenceInit(flagSP: SharedPreferences) {
+        FLAG_CAMERAFOLLOW = flagSP.getBoolean("flag", false)
+        settingFragment = SettingFragment.newInstance(FLAG_CAMERAFOLLOW)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +154,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             )
         }
 
+        flagSP = getSharedPreferences("flag", Context.MODE_PRIVATE)
         setSupportActionBar(toolbar)
+        sharedPreferenceInit(flagSP)
+        bottomNavigationView.setOnNavigationItemSelectedListener {
+            bottomNavigationViewSelected(it)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -143,15 +169,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 //        return super.onOptionsItemSelected(item)
-        val settingFragment = SettingFragment.newInstance(FLAG_CAMERAFOLLOW)
         val fragmentTransaction = supportFragmentManager.beginTransaction()
         when (item?.itemId) {
             R.id.setting -> {
-                Log.d("add?", "${settingFragment.isAdded}")
                 if (SystemClock.elapsedRealtime() - lastClickTime > 1000) {
                     lastClickTime = SystemClock.elapsedRealtime()
                     fragmentTransaction.hide(map)
                     //why isAdded forever show false
+                    supportFragmentManager.executePendingTransactions()
+                    Log.d("add?", "${settingFragment.isAdded}")
                     if (settingFragment.isAdded) fragmentTransaction.show(settingFragment)
                     else {
                         fragmentTransaction.add(R.id.frame, settingFragment, "setting")
@@ -165,6 +191,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
     override fun changeSetting(follow: Boolean) {
         FLAG_CAMERAFOLLOW = follow
+        flagSP.edit().putBoolean("flag", FLAG_CAMERAFOLLOW).apply()
     }
 
     override fun onDestroy() {
