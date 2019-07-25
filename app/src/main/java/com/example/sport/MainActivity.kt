@@ -1,36 +1,34 @@
 package com.example.sport
 
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.PointF
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.location.*
-import android.net.Uri
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.SystemClock
-import android.support.constraint.ConstraintSet
 import android.support.design.widget.BottomSheetBehavior
-import android.support.design.widget.CoordinatorLayout
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentTransaction
+import android.support.v4.widget.NestedScrollView
 import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.*
-import java.io.IOException
+import kotlinx.android.synthetic.main.bottomsheet.*
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.ChangeSetting {
@@ -38,12 +36,17 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         val REQ_PERMISSION = 0
         var FLAG_CAMERAFOLLOW = false
         var lastClickTime = 0L
+        private var flag_play = false
+        private var s = 0
+        private var m = 0
     }
+
 
     lateinit var locationManager: LocationManager
     lateinit var locationListener: LocationListenerImp
     lateinit var settingFragment: SettingFragment
     lateinit var flagSP: SharedPreferences
+    lateinit var timer: Timer
 
     inner class LocationListenerImp(val map: GoogleMap?) : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -136,11 +139,94 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         settingFragment = SettingFragment.newInstance(FLAG_CAMERAFOLLOW)
     }
 
-    fun bottomSheetInit() {
-        val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
+    fun bottomSheetInit(bottomSheetBehavior: BottomSheetBehavior<NestedScrollView>) {
         bottomSheetBehavior.peekHeight = 500
         bottomSheetBehavior.isHideable = true
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+    }
+
+//    fun bottomSheetExpanded() {
+//        val coordinatorParams = CoordinatorLayout.LayoutParams(
+//            CoordinatorLayout.LayoutParams.MATCH_PARENT,
+//            CoordinatorLayout.LayoutParams.MATCH_PARENT
+//        )
+//        coordinatorParams.dodgeInsetEdges = 80
+//        map.view?.layoutParams = coordinatorParams
+//    }
+
+    fun buttonShowPlay() {
+        val green = ColorDrawable(resources.getColor(R.color.green)) as Drawable
+        val play = resources.getDrawable(R.drawable.ic_play_arrow_black_24dp)
+        val playWithBackground = LayerDrawable(arrayOf(green, play))
+        Glide
+            .with(this)
+            .load(playWithBackground)
+            .apply(RequestOptions.circleCropTransform())
+            .into(img_play)
+    }
+
+    fun buttonShowPause() {
+        val green = ColorDrawable(resources.getColor(R.color.green)) as Drawable
+        val pause = resources.getDrawable(R.drawable.ic_pause_black_24dp)
+        val pauseWithBackground = LayerDrawable(arrayOf(green, pause))
+        Glide
+            .with(this)
+            .load(pauseWithBackground)
+            .apply(RequestOptions.circleCropTransform())
+            .into(img_play)
+    }
+
+    fun buttonInit() {
+        val green = ColorDrawable(resources.getColor(R.color.green)) as Drawable
+        val stop = resources.getDrawable(R.drawable.ic_stop_black_24dp)
+        val stopWithBackground = LayerDrawable(arrayOf(green, stop))
+        buttonShowPlay()
+        Glide
+            .with(this)
+            .load(stopWithBackground)
+            .apply(RequestOptions.circleCropTransform())
+            .into(img_stop)
+    }
+
+    fun playPressed() {
+        flag_play = !flag_play
+        if (flag_play) {
+            buttonShowPause()
+            timer = Timer()
+            timer.schedule(object : TimerTask() {
+                override fun run() {
+                    s++
+                    if (s == 60) {
+                        s = 0
+                        m++
+                    }
+                    runOnUiThread { tv_timer.text = String.format("%02d", m) + ":" + String.format("%02d", s) }
+                }
+            }, 0, 1000)
+        } else {
+            buttonShowPlay()
+            timer.cancel()
+        }
+    }
+
+    fun init() {
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
+        setSupportActionBar(toolbar)
+        flagSP = getSharedPreferences("flag", Context.MODE_PRIVATE)
+        sharedPreferenceInit(flagSP)
+        bottomSheetInit(bottomSheetBehavior)
+        buttonInit()
+        bottomSheetBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(p0: View, p1: Float) {
+//                if (p1 > 0) {
+//                    bottomSheetExpanded()
+//                }
+            }
+
+            override fun onStateChanged(p0: View, p1: Int) {
+            }
+
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,12 +250,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             )
         }
 
-        flagSP = getSharedPreferences("flag", Context.MODE_PRIVATE)
-        setSupportActionBar(toolbar)
-        sharedPreferenceInit(flagSP)
-        bottomSheetInit()
+        init()
+
         bottomNavigationView.setOnNavigationItemSelectedListener {
             bottomNavigationViewSelected(it)
+        }
+
+        img_play.setOnClickListener {
+            playPressed()
         }
     }
 

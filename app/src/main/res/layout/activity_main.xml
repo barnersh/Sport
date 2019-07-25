@@ -26,6 +26,16 @@
                 android:layout_width="match_parent"
                 android:id="@+id/map"
                 app:layout_dodgeInsetEdges="bottom"/>
+        <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:id="@+id/img_play" app:layout_dodgeInsetEdges="bottom"
+                android:layout_gravity="bottom|center" android:layout_marginBottom="16dp"/>
+        <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:id="@+id/img_stop" app:layout_dodgeInsetEdges="bottom" android:layout_gravity="bottom|right"
+                android:layout_marginBottom="16dp"/>
         <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -33,11 +43,9 @@
                 app:layout_behavior="@string/bottom_sheet_behavior" android:id="@+id/bottomsheet"
                 app:layout_insetEdge="bottom">
 
-            <android.support.constraint.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:background="#E91E63">
 
-            </android.support.constraint.ConstraintLayout>
+            <include android:layout_width="match_parent" android:layout_height="wrap_content"
+                     layout="@layout/bottomsheet"/>
         </android.support.v4.widget.NestedScrollView>
     </android.support.design.widget.CoordinatorLayout>
     <android.support.design.widget.BottomNavigationView
@@ -52,9 +60,7 @@
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintEnd_toStartOf="parent"
             app:layout_constraintStart_toStartOf="parent" android:id="@+id/frame"
-            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView">
-
-    </FrameLayout>
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"/>
     <Button
             android:text="Turn"
             android:layout_width="wrap_content"
