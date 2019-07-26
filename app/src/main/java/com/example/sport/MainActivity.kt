@@ -1,9 +1,11 @@
 package com.example.sport
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
@@ -27,6 +29,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.bottomsheet.*
 import java.util.*
@@ -37,8 +40,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         var FLAG_CAMERAFOLLOW = false
         var lastClickTime = 0L
         private var flag_play = false
-        private var s = 0
-        private var m = 0
+        private var sec = 0
+        private var min = 0
+        private var distance = 0F
     }
 
 
@@ -79,6 +83,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         btn_turn.setOnClickListener {
             serviceInit()
             localeToAddress()
+        }
+
+        img_play.setOnClickListener {
+            val startLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            val startPoint = LatLng(startLocation.latitude, startLocation.longitude)
+            playPressed(p0, startPoint)
+        }
+
+        img_stop.setOnClickListener {
+            stopPressed()
         }
     }
 
@@ -188,25 +202,61 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             .into(img_stop)
     }
 
-    fun playPressed() {
+    @SuppressLint("MissingPermission")
+    fun playPressed(map: GoogleMap?, startPoint: LatLng) {
         flag_play = !flag_play
+        var startPoint = startPoint
         if (flag_play) {
             buttonShowPause()
             timer = Timer()
             timer.schedule(object : TimerTask() {
                 override fun run() {
-                    s++
-                    if (s == 60) {
-                        s = 0
-                        m++
+                    sec++
+                    if (sec == 60) {
+                        sec = 0
+                        min++
                     }
-                    runOnUiThread { tv_timer.text = String.format("%02d", m) + ":" + String.format("%02d", s) }
+                    val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                    var endPoint = LatLng(location.latitude, location.longitude)
+                    val poly = PolylineOptions()
+                    poly.color(Color.GREEN)
+                    poly.add(startPoint)
+                    poly.add(endPoint)
+                    distance += getDistance(startPoint, endPoint)
+                    runOnUiThread {
+                        tv_timer.text = String.format("%02d", min) + ":" + String.format("%02d", sec)
+                        tv_distance.text = String.format("%.2f", distance)
+                        tv_speed.text = location.speed.toString()
+                        map?.addPolyline(poly)
+                    }
+                    startPoint = endPoint
                 }
             }, 0, 1000)
         } else {
             buttonShowPlay()
             timer.cancel()
         }
+    }
+
+    fun getDistance(startPoint: LatLng, endPoint: LatLng): Float {
+        val result = FloatArray(1)
+        Location.distanceBetween(
+            startPoint.latitude,
+            startPoint.longitude,
+            endPoint.latitude,
+            endPoint.longitude,
+            result
+        )
+        return result[0]
+    }
+
+    fun stopPressed() {
+        timer.cancel()
+        buttonShowPlay()
+        sec = 0
+        min = 0
+        tv_timer.text = String.format("%02d", min) + ":" + String.format("%02d", sec)
+        flag_play = false
     }
 
     fun init() {
@@ -256,9 +306,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             bottomNavigationViewSelected(it)
         }
 
-        img_play.setOnClickListener {
-            playPressed()
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
