@@ -87,8 +87,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
 
         img_play.setOnClickListener {
             val startLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            val startPoint = LatLng(startLocation.latitude, startLocation.longitude)
-            playPressed(p0, startPoint)
+            if (startLocation != null) {
+                val startPoint = LatLng(startLocation.latitude, startLocation.longitude)
+                playPressed(p0, startPoint)
+            }
         }
 
         img_stop.setOnClickListener {
@@ -115,7 +117,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         val location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
         val best = locationManager.getBestProvider(Criteria(), true)
         Log.d("BestProvider", best)
-        map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 18F))
+        if (location != null) map?.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                LatLng(
+                    location.latitude,
+                    location.longitude
+                ), 18F
+            )
+        )
         map?.isMyLocationEnabled = true
         locationListener = LocationListenerImp(map)
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 20F, locationListener)
@@ -142,7 +151,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
         when (it.itemId) {
             R.id.run -> {
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-                Log.d("bottom", "show")
             }
         }
         return true
@@ -251,12 +259,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
     }
 
     fun stopPressed() {
-        timer.cancel()
-        buttonShowPlay()
-        sec = 0
-        min = 0
-        tv_timer.text = String.format("%02d", min) + ":" + String.format("%02d", sec)
-        flag_play = false
+        if (::timer.isInitialized) {
+            timer.cancel()
+            buttonShowPlay()
+            sec = 0
+            min = 0
+            tv_timer.text = String.format("%02d", min) + ":" + String.format("%02d", sec)
+            flag_play = false
+        }
     }
 
     fun init() {
@@ -277,6 +287,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             }
 
         })
+    }
+
+    fun showSettingFragment() {
+        img_play.visibility = View.INVISIBLE
+        img_stop.visibility = View.INVISIBLE
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomsheet)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -320,8 +337,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, SettingFragment.Ch
             R.id.setting -> {
                 if (SystemClock.elapsedRealtime() - lastClickTime > 1000) {
                     lastClickTime = SystemClock.elapsedRealtime()
+                    showSettingFragment()
                     fragmentTransaction.hide(map)
-                    //why isAdded forever show false
                     supportFragmentManager.executePendingTransactions()
                     Log.d("add?", "${settingFragment.isAdded}")
                     if (settingFragment.isAdded) fragmentTransaction.show(settingFragment)
