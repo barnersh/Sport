@@ -1,6 +1,7 @@
 package com.example.sport
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -8,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_setting.*
 
@@ -57,8 +59,12 @@ class SettingFragment : Fragment() {
 
         btn_Confirm.setOnClickListener {
             val fragmentTransaction = fragmentManager?.beginTransaction()
-            fragmentTransaction?.remove(this)
+            val img_play = activity?.img_play
+            val img_stop = activity?.img_stop
+            fragmentTransaction?.hide(this)
             fragmentTransaction?.show(map)
+            img_play?.visibility = View.VISIBLE
+            img_stop?.visibility = View.VISIBLE
             fragmentTransaction?.commit()
         }
     }

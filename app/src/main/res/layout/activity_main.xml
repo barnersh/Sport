@@ -5,7 +5,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        tools:context=".MainActivity" android:id="@+id/constraintLayout">
 
     <android.support.v7.widget.Toolbar
             android:layout_height="wrap_content"
@@ -14,22 +14,61 @@
             android:id="@+id/toolbar"
             android:background="@color/colorPrimary" app:titleTextColor="#FFFFFF"/>
 
-    <fragment
-            android:name="com.google.android.gms.maps.SupportMapFragment"
+    <android.support.design.widget.CoordinatorLayout
             android:layout_height="0dp"
-            android:layout_width="0dp"
-            android:id="@+id/map" app:layout_constraintTop_toBottomOf="@+id/toolbar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:layout_width="match_parent" app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" android:id="@+id/coordinator">
+
+        <fragment
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:id="@+id/map"
+                app:layout_dodgeInsetEdges="bottom"/>
+        <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:id="@+id/img_play" app:layout_dodgeInsetEdges="bottom"
+                android:layout_gravity="bottom|center" android:layout_marginBottom="16dp"/>
+        <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:id="@+id/img_stop" app:layout_dodgeInsetEdges="bottom" android:layout_gravity="bottom|right"
+                android:layout_marginBottom="16dp"/>
+        <android.support.v4.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                app:layout_behavior="@string/bottom_sheet_behavior" android:id="@+id/bottomsheet"
+                app:layout_insetEdge="bottom">
+
+
+            <include android:layout_width="match_parent" android:layout_height="wrap_content"
+                     layout="@layout/bottomsheet"/>
+        </android.support.v4.widget.NestedScrollView>
+    </android.support.design.widget.CoordinatorLayout>
+    <android.support.design.widget.BottomNavigationView
+            android:layout_width="match_parent"
+            android:layout_height="50dp" android:layout_gravity="bottom" app:menu="@menu/bottom_nav"
+            android:id="@+id/bottomNavigationView" android:background="#F7F4F4"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
     <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="parent"
-            app:layout_constraintStart_toStartOf="parent" android:id="@+id/frame">
-
-    </FrameLayout>
+            app:layout_constraintEnd_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="parent" android:id="@+id/frame"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"/>
+    <Button
+            android:text="Turn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/btn_turn"
+            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="31dp"
+            android:layout_marginRight="8dp" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent" android:layout_gravity="bottom|right"
+            android:visibility="invisible"/>
 
 
 </android.support.constraint.ConstraintLayout>
